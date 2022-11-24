@@ -21,3 +21,12 @@ class Giver(models.Model):
 
     def __str__(self) -> str:
         return str(self.user.work_email)
+
+class Taker(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    req_portion = models.BooleanField(null=True)
+    got_food = models.BooleanField(null=False)
+    veg_preference = models.BooleanField(null=False, default=0)
+
+    def __str__(self) -> str:
+        return str(self.user.work_email)

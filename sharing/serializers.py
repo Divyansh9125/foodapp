@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, Giver
+from .models import User, Giver, Taker
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -34,3 +34,19 @@ class GiverSerializer(serializers.ModelSerializer):
 
         giver.save()
         return giver
+
+class TakerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Taker
+        fields = '__all__'
+
+    def create(self, validated_data):
+        taker = Taker(
+            user = validated_data['user'],
+            req_portion = validated_data['req_portion'],
+            got_food = validated_data['got_food'],
+            veg_preference = validated_data['veg_preference']
+        )
+
+        taker.save()
+        return taker
