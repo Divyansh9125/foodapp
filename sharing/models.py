@@ -8,15 +8,16 @@ class User(models.Model):
     contact = models.BigIntegerField(null=False, unique=True)
 
     def __str__(self) -> str:
-        return self.work_email
+        return str(self.work_email)
 
 class Giver(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     portion = models.BooleanField(null=False)
-    date = models.DateField(auto_now=True)
+    date = models.DateTimeField(auto_now=True, null=False)
     order_id = models.CharField(max_length=10)
     veg = models.BooleanField(null=False)
     piece = models.BooleanField(null=False)
+    available = models.BooleanField(null=False, default=1)
 
     def __str__(self) -> str:
-        return self.user.fname
+        return str(self.user.work_email)

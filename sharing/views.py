@@ -80,3 +80,45 @@ def giveFood(request):
         'success': False,
         'error': 'wrong request method'
         }, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+def numFoodAvailable(request, option, piece):
+    """
+    Get number of available food in the database
+    """
+    if request.method == 'GET':
+        if option == 'veg':
+            if piece == 5:
+                num = Giver.objects.filter(available=1, veg=1, piece=0).count()
+            elif piece == 8:
+                num = Giver.objects.filter(available=1, veg=1, piece=1).count()
+            else:
+                return Response({
+                    'success': False,
+                    'error': 'wrong query params'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+        elif option == 'non-veg':
+            if piece == 5:
+                num = Giver.objects.filter(available=1, veg=0, piece=0).count()
+            elif piece == 8:
+                num = Giver.objects.filter(available=1, veg=0, piece=1).count()
+            else:
+                return Response({
+                    'success': False,
+                    'error': 'wrong query params'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({
+                'success': False,
+                'error': 'wrong query params'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({
+            'success': 1,
+            'num': num
+            }, status=status.HTTP_201_CREATED)
+    return Response({
+        'success': False,
+        'error': 'wrong request method'
+        }, status=status.HTTP_400_BAD_REQUEST)

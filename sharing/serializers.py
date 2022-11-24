@@ -28,7 +28,8 @@ class GiverSerializer(serializers.ModelSerializer):
             portion = validated_data['portion'],
             order_id = validated_data['order_id'],
             veg = validated_data['veg'],
-            piece = validated_data['piece']
+            piece = validated_data['piece'],
+            available = 1
         )
 
         giver.save()
