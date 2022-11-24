@@ -167,3 +167,118 @@ def regTaker(request):
         'success': False,
         'error': 'wrong request method'
         }, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+def placeOrder(request, option, piece):
+    if request.method == 'POST':
+        work_email = request.data['work_email']
+        try:
+            user = User.objects.get(work_email=work_email)
+            taker = Taker.objects.get(user=user)
+            if taker.got_food == 0:
+                if option == 'veg':
+                    if piece == 5:
+                        giverNum = Giver.objects.filter(available=1, veg=1, piece=0).count()
+                        if giverNum > 0:
+                            giver = Giver.objects.get(available=1, veg=1, piece=0).all()
+                            giver = giver[0]
+                            order_id = giver.order_id
+                            taker.got_food = 1
+                            taker.save()
+
+                            return Response({
+                                'success': 1,
+                                'order_id': order_id
+                            }, status=status.HTTP_200_OK)
+                        else:
+                            return Response({
+                                'success': 0,
+                                'error': 'food not available'
+                            }, status=status.HTTP_200_OK)
+                    elif piece == 8:
+                        giverNum = Giver.objects.filter(available=1, veg=1, piece=1).count()
+                        if giverNum > 0:
+                            giver = Giver.objects.get(available=1, veg=1, piece=1).all()
+                            giver = giver[0]
+                            order_id = giver.order_id
+                            taker.got_food = 1
+                            taker.save()
+
+                            return Response({
+                                'success': 1,
+                                'order_id': order_id
+                            }, status=status.HTTP_200_OK)
+                        else:
+                            return Response({
+                                'success': 0,
+                                'error': 'food not available'
+                            }, status=status.HTTP_200_OK)
+                    else:
+                        return Response({
+                                'success': 0,
+                                'error': 'wrong query params'
+                            }, status=status.HTTP_400_BAD_REQUEST)
+                elif option == 'non-veg':
+                    if piece == 5:
+                        giverNum = Giver.objects.filter(available=1, veg=0, piece=0).count()
+                        if giverNum > 0:
+                            giver = Giver.objects.get(available=1, veg=0, piece=0).all()
+                            giver = giver[0]
+                            order_id = giver.order_id
+                            taker.got_food = 1
+                            taker.save()
+
+                            return Response({
+                                'success': 1,
+                                'order_id': order_id
+                            }, status=status.HTTP_200_OK)
+                        else:
+                            return Response({
+                                'success': 0,
+                                'error': 'food not available'
+                            }, status=status.HTTP_200_OK)
+                    elif piece == 8:
+                        giverNum = Giver.objects.filter(available=1, veg=0, piece=1).count()
+                        if giverNum > 0:
+                            giver = Giver.objects.get(available=1, veg=0, piece=1).all()
+                            giver = giver[0]
+                            order_id = giver.order_id
+                            taker.got_food = 1
+                            taker.save()
+
+                            return Response({
+                                'success': 1,
+                                'order_id': order_id
+                            }, status=status.HTTP_200_OK)
+                        else:
+                            return Response({
+                                'success': 0,
+                                'error': 'food not available'
+                            }, status=status.HTTP_200_OK)
+                    else:
+                        return Response({
+                            'success': 0,
+                            'error': 'wrong query params'
+                        }, status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    return Response({
+                        'success': 0,
+                        'error': 'wrong query params'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+
+        except User.DoesNotExist:
+            return Response({
+                'success': 0,
+                'error': 'user not registered'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        except Taker.DoesNotExist:
+            return Response({
+                'success': 0,
+                'error': 'taker not registered'
+            }, status=status.HTTP_400_BAD_REQUEST)
+    return Response({
+        'success': False,
+        'error': 'wrong request method'
+        }, status=status.HTTP_400_BAD_REQUEST)
