@@ -171,6 +171,13 @@ def regTaker(request):
 
 @api_view(['POST'])
 def placeOrder(request, option, piece):
+    """
+    Send taker data in the format below:
+    #
+    ###{
+        'work_email': 'jdoe@mathworks.com'
+    ###}
+    """
     if request.method == 'POST':
         work_email = request.data['work_email']
         try:
