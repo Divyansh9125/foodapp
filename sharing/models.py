@@ -3,9 +3,11 @@ from django.db import models
 
 class User(models.Model):
     work_email = models.EmailField(primary_key=True)
+    password = models.CharField(max_length=250, null=True)
     fname = models.CharField(max_length=250, null=False)
     lname = models.CharField(max_length=250)
     contact = models.BigIntegerField(null=False, unique=True)
+    token = models.CharField(null=True, max_length=16)
 
     def __str__(self) -> str:
         return str(self.work_email)

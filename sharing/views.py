@@ -3,6 +3,48 @@ from rest_framework.response import Response
 from rest_framework import status
 from .serializers import *
 from .models import *
+from . import Utility
+
+@api_view(['POST'])
+def login(request):
+    """
+    Send user data for SignUp in the format below:
+    #
+    ###{
+        "work_email": "jdoe@mathworks.com",
+        "password": "jnedq@2u10"
+    ###}
+    """
+    if request.method == 'POST':
+        work_email = request.data['work_email']
+        password = request.data['password']
+
+        try:
+            user = User.objects.get(work_email=work_email)
+            if user.password == password :
+                token = Utility.getToken(16)
+                user.token = token
+                user.save()
+
+                return Response({
+                'success': True,
+                'token': token
+                }, status=status.HTTP_200_OK)
+            else:
+                return Response({
+                'success': False,
+                }, status=status.HTTP_400_BAD_REQUEST)
+        except:
+            return Response({
+                'success': False,
+                }, status=status.HTTP_400_BAD_REQUEST)
+    return Response({
+                'success': False,
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
 
 @api_view(['POST'])
 def userSignUp(request):
@@ -11,6 +53,7 @@ def userSignUp(request):
     #
     ###{
         "work_email": "jdoe@mathworks.com",
+        "password": "jnedq@2u10"
         "fname": "John",
         "lname": "Doe",
         "contact": "0123456789"
@@ -26,9 +69,9 @@ def userSignUp(request):
                 }, status=status.HTTP_400_BAD_REQUEST)
         except:
             userSerializer = UserSerializer()
-            createdUser = userSerializer.create(request.data)
-            if not createdUser is None:
-                return Response({'success': True}, status=status.HTTP_201_CREATED)
+            createdUserToken = userSerializer.create(request.data)
+            if not createdUserToken is None:
+                return Response({'success': True, 'token': createdUserToken}, status=status.HTTP_201_CREATED)
             return Response({
                 'success': False,
                 'error': 'user not created'
@@ -45,7 +88,7 @@ def giveFood(request):
     Send user data for giveFood in the format below:
     #
     ###{
-        "work_email": "jdoe@mathworks.com",
+        "token": "lksjenfowuhnfown",
         "portion": 0, // 0 for half, 1 for full
         "order_id": "123456",
         "veg": 1, // 1 for veg, 0 for non-veg
@@ -53,9 +96,9 @@ def giveFood(request):
     ###}
     """
     if request.method == 'POST':
-        work_email = request.data['work_email']
+        token = request.data['token']
         try:
-            user = User.objects.get(work_email=work_email)
+            user = User.objects.get(token=token)
             data = {
                 'user': user,
                 'portion': request.data['portion'],
@@ -67,8 +110,12 @@ def giveFood(request):
             giverSerializer = GiverSerializer()
             createdGiver = giverSerializer.create(data)
 
+            token = Utility.getToken(16)
+            user.token = token
+            user.save()
+
             if not createdGiver is None:
-                return Response({'success': True}, status=status.HTTP_201_CREATED)
+                return Response({'success': True, 'token': token}, status=status.HTTP_201_CREATED)
             return Response({
                 'success': False,
                 'error': 'user not created'
@@ -175,24 +222,31 @@ def placeOrder(request, option, piece):
     Send taker data in the format below:
     #
     ###{
-        'work_email': 'jdoe@mathworks.com'
+        'token': 'ehfwh299`9394'
     ###}
     """
+    print(request.method)
     if request.method == 'POST':
-        work_email = request.data['work_email']
+        token = request.data['token']
         try:
-            user = User.objects.get(work_email=work_email)
+            user = User.objects.get(token=token)
             taker = Taker.objects.get(user=user)
+            print("user: ", user.fname)
             if taker.got_food == 0:
                 if option == 'veg':
                     if piece == 5:
-                        giverNum = Giver.objects.filter(available=1, veg=1, piece=0).count()
+                        giverNum = Giver.objects.all().filter(available=1, veg=1, piece=0).count()
+                        print("giverNum: ", giverNum)
                         if giverNum > 0:
-                            giver = Giver.objects.get(available=1, veg=1, piece=0).all()
+                            giver = Giver.objects.all().filter(available=1, veg=1, piece=0)
                             giver = giver[0]
                             order_id = giver.order_id
                             taker.got_food = 1
                             taker.save()
+                            giver.available = 0
+                            giver.save()
+
+                            print("entered", request.method)
 
                             return Response({
                                 'success': 1,
@@ -204,13 +258,15 @@ def placeOrder(request, option, piece):
                                 'error': 'food not available'
                             }, status=status.HTTP_200_OK)
                     elif piece == 8:
-                        giverNum = Giver.objects.filter(available=1, veg=1, piece=1).count()
+                        giverNum = Giver.objects.all().filter(available=1, veg=1, piece=0).count()
                         if giverNum > 0:
-                            giver = Giver.objects.get(available=1, veg=1, piece=1).all()
+                            giver = Giver.objects.all().filter(available=1, veg=1, piece=0)
                             giver = giver[0]
                             order_id = giver.order_id
                             taker.got_food = 1
                             taker.save()
+                            giver.available = 0
+                            giver.save()
 
                             return Response({
                                 'success': 1,
@@ -228,13 +284,15 @@ def placeOrder(request, option, piece):
                             }, status=status.HTTP_400_BAD_REQUEST)
                 elif option == 'non-veg':
                     if piece == 5:
-                        giverNum = Giver.objects.filter(available=1, veg=0, piece=0).count()
+                        giverNum = Giver.objects.all().filter(available=1, veg=1, piece=0).count()
                         if giverNum > 0:
-                            giver = Giver.objects.get(available=1, veg=0, piece=0).all()
+                            giver = Giver.objects.all().filter(available=1, veg=1, piece=0)
                             giver = giver[0]
                             order_id = giver.order_id
                             taker.got_food = 1
                             taker.save()
+                            giver.available = 0
+                            giver.save()
 
                             return Response({
                                 'success': 1,
@@ -246,13 +304,15 @@ def placeOrder(request, option, piece):
                                 'error': 'food not available'
                             }, status=status.HTTP_200_OK)
                     elif piece == 8:
-                        giverNum = Giver.objects.filter(available=1, veg=0, piece=1).count()
+                        giverNum = Giver.objects.all().filter(available=1, veg=1, piece=0).count()
                         if giverNum > 0:
-                            giver = Giver.objects.get(available=1, veg=0, piece=1).all()
+                            giver = Giver.objects.all().filter(available=1, veg=1, piece=0)
                             giver = giver[0]
                             order_id = giver.order_id
                             taker.got_food = 1
                             taker.save()
+                            giver.available = 0
+                            giver.save()
 
                             return Response({
                                 'success': 1,
@@ -273,7 +333,11 @@ def placeOrder(request, option, piece):
                         'success': 0,
                         'error': 'wrong query params'
                     }, status=status.HTTP_400_BAD_REQUEST)
-
+            else:
+                return Response({
+                        'success': 0,
+                        'error': 'taker got food'
+                    }, status=status.HTTP_400_BAD_REQUEST)
         except User.DoesNotExist:
             return Response({
                 'success': 0,
@@ -285,7 +349,9 @@ def placeOrder(request, option, piece):
                 'success': 0,
                 'error': 'taker not registered'
             }, status=status.HTTP_400_BAD_REQUEST)
-    return Response({
+    else:
+        print("not entered", request.method)
+        return Response({
         'success': False,
         'error': 'wrong request method'
         }, status=status.HTTP_400_BAD_REQUEST)

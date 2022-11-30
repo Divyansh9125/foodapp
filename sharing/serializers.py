@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import User, Giver, Taker
+from . import Utility
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -7,15 +8,18 @@ class UserSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def create(self, validated_data):
+        token = Utility.getToken(16)
         user = User(
             work_email = validated_data['work_email'],
             fname = validated_data['fname'],
             lname = validated_data['lname'],
-            contact = validated_data['contact']
+            contact = validated_data['contact'],
+            password = validated_data['password'],
+            token = token
         )
 
         user.save()
-        return user
+        return token
 
 class GiverSerializer(serializers.ModelSerializer):
     class Meta:
